@@ -1,4 +1,5 @@
 404.html
+CreatorSignal.PlausibleSSO.Config.html
 Mix.Tasks.CancelSubscription.html
 Mix.Tasks.CreatePaddleProdPlans.html
 Mix.Tasks.CreatePaddleSandboxPlans.html
@@ -577,8 +578,8 @@ dist/lato-latin-ext-300-normal-VPGGJKJL.woff2
 dist/lato-latin-ext-400-normal-N27NCBWW.woff2
 dist/lato-latin-ext-700-normal-Q2L5DVMW.woff2
 dist/remixicon-NKANDIL5.woff2
-dist/search_data-C6A14EDC.js
-dist/sidebar_items-B85CC5B7.js
+dist/search_data-04D6F176.js
+dist/sidebar_items-AE344DDD.js
 index.html
 readme.html
 search.html
