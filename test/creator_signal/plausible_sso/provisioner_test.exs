@@ -41,8 +41,10 @@ defmodule CreatorSignal.PlausibleSSO.ProvisionerTest do
 
   test "later authorised operators are provisioned as administrators" do
     assert {:ok, %{team: team}} = Provisioner.provision(claims("owner@example.test"))
-    assert {:ok, %{user: user, team: ^team}} = Provisioner.provision(claims("admin@example.test"))
+    assert {:ok, %{user: user, team: provisioned_team}} =
+             Provisioner.provision(claims("admin@example.test"))
 
+    assert provisioned_team.id == team.id
     membership = Repo.get_by!(Teams.Membership, user_id: user.id, team_id: team.id)
     assert membership.role == :admin
   end
