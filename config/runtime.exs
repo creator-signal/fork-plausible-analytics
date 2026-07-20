@@ -390,10 +390,17 @@ creator_signal_sso_scopes =
 
 creator_signal_sso_default_team_role =
   case get_var_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_DEFAULT_TEAM_ROLE", "admin") do
-    "viewer" -> :viewer
-    "editor" -> :editor
-    "admin" -> :admin
-    other -> raise "CREATOR_SIGNAL_SSO_DEFAULT_TEAM_ROLE must be viewer, editor, or admin; got #{other}"
+    "viewer" ->
+      :viewer
+
+    "editor" ->
+      :editor
+
+    "admin" ->
+      :admin
+
+    other ->
+      raise "CREATOR_SIGNAL_SSO_DEFAULT_TEAM_ROLE must be viewer, editor, or admin; got #{other}"
   end
 
 creator_signal_sso_session_timeout_minutes =

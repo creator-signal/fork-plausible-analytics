@@ -132,7 +132,10 @@ defmodule CreatorSignal.PlausibleSSO.OIDC do
   end
 
   defp find_jwk(keys, kid, algorithm) do
-    case Enum.find(keys, &(Map.get(&1, "kid") == kid and Map.get(&1, "alg", algorithm) == algorithm)) do
+    case Enum.find(
+           keys,
+           &(Map.get(&1, "kid") == kid and Map.get(&1, "alg", algorithm) == algorithm)
+         ) do
       nil -> {:error, :signing_key_not_found}
       jwk -> {:ok, jwk}
     end
