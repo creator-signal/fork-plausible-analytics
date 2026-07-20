@@ -78,9 +78,8 @@ defmodule CreatorSignal.PlausibleSSO.OIDC do
          :ok <- validate_expiry(claims, now),
          :ok <- validate_issued_at(claims, now),
          :ok <- secure_claim(claims, "nonce", expected_nonce, :nonce_mismatch),
-         :ok <- validate_authorised_party(claims),
-         :ok <- validate_access_token_hash(claims, access_token) do
-      :ok
+         :ok <- validate_authorised_party(claims) do
+      validate_access_token_hash(claims, access_token)
     end
   end
 
