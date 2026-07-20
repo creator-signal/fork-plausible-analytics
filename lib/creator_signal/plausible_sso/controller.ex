@@ -57,7 +57,6 @@ defmodule CreatorSignal.PlausibleSSO.Controller do
       |> put_session("current_team_id", team.identifier)
     else
       {:error, reason} -> fail(conn, reason)
-      false -> fail(conn, :invalid_callback)
     end
   end
 

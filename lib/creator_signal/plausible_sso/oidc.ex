@@ -108,7 +108,6 @@ defmodule CreatorSignal.PlausibleSSO.OIDC do
     else
       {false, _, _} -> {:error, :invalid_signature}
       {:error, _} = error -> error
-      _ -> {:error, :invalid_id_token}
     end
   rescue
     _ -> {:error, :invalid_id_token}
