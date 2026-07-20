@@ -349,6 +349,95 @@ secure_cookie =
 
 license_key = get_var_from_path_or_env(config_dir, "LICENSE_KEY", "")
 
+creator_signal_sso_enabled =
+  get_bool_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_ENABLED", false)
+
+creator_signal_sso_issuer =
+  get_var_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_ISSUER")
+
+creator_signal_sso_client_id =
+  get_var_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_CLIENT_ID")
+
+creator_signal_sso_client_secret =
+  get_var_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_CLIENT_SECRET")
+
+creator_signal_sso_bootstrap_email =
+  get_var_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_BOOTSTRAP_EMAIL")
+
+creator_signal_sso_required_role =
+  get_var_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_REQUIRED_ROLE", "platform:operator")
+
+creator_signal_sso_role_claim =
+  get_var_from_path_or_env(
+    config_dir,
+    "CREATOR_SIGNAL_SSO_ROLE_CLAIM",
+    "urn:zitadel:iam:org:project:roles"
+  )
+
+creator_signal_sso_team_name =
+  get_var_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_TEAM_NAME", "Creator Signal")
+
+creator_signal_sso_force_login =
+  get_bool_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_FORCE_LOGIN", false)
+
+creator_signal_sso_allow_insecure_http =
+  get_bool_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_ALLOW_INSECURE_HTTP", false)
+
+creator_signal_sso_scopes =
+  config_dir
+  |> get_var_from_path_or_env("CREATOR_SIGNAL_SSO_SCOPES", "openid profile email")
+  |> String.split([",", " "], trim: true)
+
+creator_signal_sso_default_team_role =
+  case get_var_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_DEFAULT_TEAM_ROLE", "admin") do
+    "viewer" -> :viewer
+    "editor" -> :editor
+    "admin" -> :admin
+    other -> raise "CREATOR_SIGNAL_SSO_DEFAULT_TEAM_ROLE must be viewer, editor, or admin; got #{other}"
+  end
+
+creator_signal_sso_session_timeout_minutes =
+  get_int_from_path_or_env(config_dir, "CREATOR_SIGNAL_SSO_SESSION_TIMEOUT_MINUTES", 720)
+
+if creator_signal_sso_session_timeout_minutes not in 5..720 do
+  raise "CREATOR_SIGNAL_SSO_SESSION_TIMEOUT_MINUTES must be between 5 and 720"
+end
+
+if creator_signal_sso_enabled do
+  for {name, value} <- [
+        {"CREATOR_SIGNAL_SSO_ISSUER", creator_signal_sso_issuer},
+        {"CREATOR_SIGNAL_SSO_CLIENT_ID", creator_signal_sso_client_id},
+        {"CREATOR_SIGNAL_SSO_BOOTSTRAP_EMAIL", creator_signal_sso_bootstrap_email}
+      ] do
+    if value in [nil, ""], do: raise("#{name} is required when Creator Signal SSO is enabled")
+  end
+
+  issuer = URI.parse(creator_signal_sso_issuer)
+
+  if issuer.host in [nil, ""] or issuer.query or issuer.fragment do
+    raise "CREATOR_SIGNAL_SSO_ISSUER must be an absolute issuer URL without query or fragment"
+  end
+
+  if issuer.scheme != "https" and not creator_signal_sso_allow_insecure_http do
+    raise "CREATOR_SIGNAL_SSO_ISSUER must use HTTPS unless CREATOR_SIGNAL_SSO_ALLOW_INSECURE_HTTP=true"
+  end
+end
+
+config :plausible, CreatorSignal.PlausibleSSO.Config,
+  enabled: creator_signal_sso_enabled,
+  issuer: creator_signal_sso_issuer,
+  client_id: creator_signal_sso_client_id,
+  client_secret: creator_signal_sso_client_secret,
+  bootstrap_email: creator_signal_sso_bootstrap_email,
+  required_role: creator_signal_sso_required_role,
+  role_claim: creator_signal_sso_role_claim,
+  team_name: creator_signal_sso_team_name,
+  default_team_role: creator_signal_sso_default_team_role,
+  session_timeout_minutes: creator_signal_sso_session_timeout_minutes,
+  scopes: creator_signal_sso_scopes,
+  force_login: creator_signal_sso_force_login,
+  allow_insecure_http: creator_signal_sso_allow_insecure_http
+
 sso_saml_adapter =
   case get_var_from_path_or_env(config_dir, "SSO_SAML_ADAPTER", "fake") do
     "fake" -> PlausibleWeb.SSO.FakeSAMLAdapter

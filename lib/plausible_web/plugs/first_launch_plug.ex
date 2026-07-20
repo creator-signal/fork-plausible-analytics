@@ -28,6 +28,13 @@ defmodule PlausibleWeb.FirstLaunchPlug do
 
   def call(conn, redirect_to) do
     if Release.should_be_first_launch?() do
+      redirect_to =
+        if CreatorSignal.PlausibleSSO.Config.enabled?() do
+          "/creator-signal/sso/login"
+        else
+          redirect_to
+        end
+
       conn
       |> Phoenix.Controller.redirect(to: redirect_to)
       |> Plug.Conn.halt()

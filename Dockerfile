@@ -55,7 +55,7 @@ RUN mix release plausible
 
 # Main Docker Image
 FROM alpine:3.22.5@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
-LABEL maintainer="plausible.io <hello@plausible.io>"
+LABEL maintainer="Creator Signal"
 
 ARG BUILD_METADATA={}
 ENV BUILD_METADATA=$BUILD_METADATA
@@ -84,4 +84,3 @@ EXPOSE 8000
 ENV DEFAULT_DATA_DIR=/var/lib/plausible
 VOLUME /var/lib/plausible
 CMD ["run"]
-

@@ -1,15 +1,21 @@
-name: Build Public Images GHCR
+name: Build Creator Signal Plausible Image
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["v*-cs.*"]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  GHCR_REPO: ghcr.io/plausible/community-edition
+  GHCR_REPO: ghcr.io/creator-signal/plausible
 
 jobs:
   build:
@@ -57,6 +63,8 @@ jobs:
           build-args: |
             MIX_ENV=ce
             BUILD_METADATA=${{ steps.meta.outputs.json }}
+          provenance: mode=max
+          sbom: true
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
@@ -74,15 +82,6 @@ jobs:
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
-
-      - name: Notify team on failure
-        if: ${{ failure() }}
-        uses: fjogeleit/http-request-action@551353b829c3646756b2ec2b3694f819d7957495 # v2.0.0
-        with:
-          url: ${{ secrets.BUILD_NOTIFICATION_URL }}
-          method: "POST"
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"content": "<a href=\"https://github.com/plausible/analytics/actions/workflows/build-public-images-ghcr.yml\">Build failed</a>"}'
 
   push:
     runs-on: ubuntu-latest
@@ -110,9 +109,8 @@ jobs:
         with:
           images: ${{ env.GHCR_REPO }}
           tags: |
-            type=semver,pattern={{version}},prefix=v
-            type=semver,pattern={{major}}.{{minor}},prefix=v
-            type=semver,pattern={{major}},prefix=v
+            type=semver,pattern={{version}}
+            type=sha,prefix=sha-
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
