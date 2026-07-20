@@ -17,6 +17,16 @@ defmodule PlausibleWeb.Router do
     plug :put_root_layout, html: {PlausibleWeb.LayoutView, :app}
   end
 
+  pipeline :creator_signal_sso do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_secure_browser_headers
+    plug PlausibleWeb.Plugs.NoRobots
+    plug PlausibleWeb.AuthPlug
+    plug :put_root_layout, html: {PlausibleWeb.LayoutView, :app}
+  end
+
   on_ee do
     pipeline :browser_sso_notice do
       plug :accepts, ["html"]
@@ -216,6 +226,13 @@ defmodule PlausibleWeb.Router do
       post "/consume/:integration_id", SSOController, :saml_consume
       post "/csp-report", SSOController, :csp_report
     end
+  end
+
+  scope "/creator-signal/sso", CreatorSignal.PlausibleSSO, as: :creator_signal_sso do
+    pipe_through [:creator_signal_sso]
+
+    get "/login", Controller, :login
+    get "/callback", Controller, :callback
   end
 
   scope path: "/api/plugins", as: :plugins_api do

@@ -15,6 +15,12 @@
 
 [Plausible Analytics](https://plausible.io/) is an open source, privacy-first web analytics tool. Lightweight, cookie-free [alternative to Google Analytics](https://plausible.io/blog/remove-google-analytics). Available in managed cloud or self-hosted community edition.
 
+> [!NOTE]
+> This Creator Signal fork adds an independent ZITADEL OIDC integration to the
+> Community Edition build. It does not compile, enable or modify Plausible's
+> Enterprise SSO implementation. See
+> [Creator Signal ZITADEL SSO](docs/creator-signal-sso.md).
+
 - 🔐 [Privacy-focused](https://plausible.io/privacy-focused-web-analytics)
 - 🛡️ [GDPR, CCPA, PECR compliant](https://plausible.io/data-policy)
 - 📊 [Simple, fast dashboard](https://plausible.io/simple-web-analytics)

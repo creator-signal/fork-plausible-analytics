@@ -46,21 +46,34 @@ defmodule Plausible.Auth.UserSession do
   def touch_session(session, now \\ NaiveDateTime.utc_now(:second)) do
     changeset = change(session)
 
-    on_ee do
-      case get_field(changeset, :user) do
-        %{type: :sso} ->
-          put_change(changeset, :last_used_at, now)
-
-        _ ->
-          changeset
-          |> put_change(:last_used_at, now)
-          |> put_change(:timeout_at, NaiveDateTime.shift(now, @timeout))
-      end
+    if creator_signal_identity?(changeset) do
+      put_change(changeset, :last_used_at, now)
     else
-      changeset
-      |> put_change(:last_used_at, now)
-      |> put_change(:timeout_at, NaiveDateTime.shift(now, @timeout))
+      on_ee do
+        case get_field(changeset, :user) do
+          %{type: :sso} ->
+            put_change(changeset, :last_used_at, now)
+
+          _ ->
+            touch_standard_session(changeset, now)
+        end
+      else
+        touch_standard_session(changeset, now)
+      end
     end
+  end
+
+  defp creator_signal_identity?(changeset) do
+    case get_field(changeset, :user) do
+      %Auth.User{} = user -> CreatorSignal.PlausibleSSO.Identity.externally_managed?(user)
+      _ -> false
+    end
+  end
+
+  defp touch_standard_session(changeset, now) do
+    changeset
+    |> put_change(:last_used_at, now)
+    |> put_change(:timeout_at, NaiveDateTime.shift(now, @timeout))
   end
 
   defp generate_token(changeset) do

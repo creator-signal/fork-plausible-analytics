@@ -23,7 +23,13 @@ defmodule PlausibleWeb.UserAuth do
   def log_in_user(conn, %Auth.User{} = user, redirect_path) do
     redirect_to = login_redirect_path(conn, redirect_path)
     device_name = get_device_name(conn)
-    session = Auth.UserSessions.create!(user, device_name)
+
+    session =
+      Auth.UserSessions.create!(
+        user,
+        device_name,
+        CreatorSignal.PlausibleSSO.Provisioner.session_options(user)
+      )
 
     conn
     |> set_user_token(session.token)

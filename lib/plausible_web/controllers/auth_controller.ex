@@ -179,15 +179,17 @@ defmodule PlausibleWeb.AuthController do
   def password_reset_request(conn, %{"email" => email} = params) do
     if PlausibleWeb.Captcha.verify(params["h-captcha-response"]) do
       case Auth.lookup(email) do
-        {:ok, _user} ->
-          token = Auth.Token.sign_password_reset(email)
-          url = PlausibleWeb.Endpoint.url() <> "/password/reset?token=#{token}"
-          email_template = PlausibleWeb.Email.password_reset_email(email, url)
-          Plausible.Mailer.deliver_later(email_template)
+        {:ok, user} ->
+          unless CreatorSignal.PlausibleSSO.Identity.externally_managed?(user) do
+            token = Auth.Token.sign_password_reset(email)
+            url = PlausibleWeb.Endpoint.url() <> "/password/reset?token=#{token}"
+            email_template = PlausibleWeb.Email.password_reset_email(email, url)
+            Plausible.Mailer.deliver_later(email_template)
 
-          Logger.debug(
-            "Password reset e-mail sent. In dev environment GET /sent-emails for details."
-          )
+            Logger.debug(
+              "Password reset e-mail sent. In dev environment GET /sent-emails for details."
+            )
+          end
 
           render_auth_page(conn, "password_reset_request_success.html",
             heading: "Check your email",
@@ -271,8 +273,13 @@ defmodule PlausibleWeb.AuthController do
       end
     end
   else
-    def login_form(conn, _params) do
-      render_login_form(conn)
+    def login_form(conn, params) do
+      if CreatorSignal.PlausibleSSO.Config.force_login?() and params["local"] != "true" do
+        query = URI.encode_query(%{"return_to" => params["return_to"] || ""})
+        redirect(conn, to: "/creator-signal/sso/login?#{query}")
+      else
+        render_login_form(conn)
+      end
     end
   end
 
@@ -292,6 +299,7 @@ defmodule PlausibleWeb.AuthController do
          {:ok, user} <- Auth.lookup(email),
          :ok <- Auth.rate_limit(:login_user, user),
          :ok <- Auth.check_password(user, password),
+         :ok <- CreatorSignal.PlausibleSSO.Provisioner.local_login_allowed?(user),
          :ok <- check_2fa_verified(conn, user) do
       redirect_path =
         cond do
@@ -329,6 +337,11 @@ defmodule PlausibleWeb.AuthController do
 
         conn
         |> put_flash(:login_error, "Incorrect email or password. Please try again.")
+        |> render_login_form()
+
+      {:error, :external_identity} ->
+        conn
+        |> put_flash(:login_error, "Use Creator Signal to sign in to this account.")
         |> render_login_form()
 
       {:error, :user_not_found} ->
