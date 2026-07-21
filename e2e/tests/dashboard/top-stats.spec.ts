@@ -151,6 +151,11 @@ test('top stats show relevant metrics', async ({ page, request }) => {
 
   await expect(page.getByRole('button', { name: domain })).toBeVisible()
 
+  await page.keyboard.press('w')
+  await expect(page.getByTestId('current-query-period')).toHaveText(
+    'Last 7 days'
+  )
+
   await expect(page.locator('#visitors')).toHaveText('2')
   await expect(page.locator('#visits')).toHaveText('3')
   await expect(page.locator('#pageviews')).toHaveText('4')
