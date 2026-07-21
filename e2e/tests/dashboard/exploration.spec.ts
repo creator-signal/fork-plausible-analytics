@@ -745,6 +745,10 @@ test('explore journey hitting 20 step limit', async ({ page, request }) => {
 
   await page.goto('/' + domain, { waitUntil: 'commit' })
 
+  await expect(page.getByTestId('current-query-period')).toBeVisible()
+  await page.keyboard.press('a')
+  await expect(page.getByTestId('current-query-period')).toHaveText('All time')
+
   await explorationTabButton.click()
   await report.getByTestId('report-end').scrollIntoViewIfNeeded()
 
