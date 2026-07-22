@@ -29,9 +29,11 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
+            runner: blacksmith-4vcpu-ubuntu-2404
           - platform: linux/arm64
+            runner: blacksmith-4vcpu-ubuntu-2404-arm
 
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout verified commit
@@ -55,12 +57,6 @@ jobs:
             type=raw,value=${{ env.SOURCE_TAG }}
           labels: |
             org.opencontainers.image.revision=${{ env.SOURCE_SHA }}
-
-      - name: Set up QEMU
-        if: matrix.platform == 'linux/arm64'
-        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
-        with:
-          platforms: arm64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
