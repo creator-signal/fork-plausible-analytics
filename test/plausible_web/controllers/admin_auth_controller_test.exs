@@ -9,6 +9,7 @@ defmodule PlausibleWeb.AdminAuthControllerTest do
       patch_config(disable_registration: true)
       conn = get(conn, "/register")
       assert redirected_to(conn) == "/login"
+
       assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
                "Registration is disabled on this instance"
     end
