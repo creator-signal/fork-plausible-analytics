@@ -421,7 +421,7 @@ if creator_signal_sso_enabled do
 
   issuer = URI.parse(creator_signal_sso_issuer)
 
-  if issuer.host in [nil, ""] or issuer.query or issuer.fragment do
+  if issuer.host in [nil, ""] or not is_nil(issuer.query) or not is_nil(issuer.fragment) do
     raise "CREATOR_SIGNAL_SSO_ISSUER must be an absolute issuer URL without query or fragment"
   end
 
