@@ -709,6 +709,43 @@ defmodule Plausible.ConfigTest do
     end
   end
 
+  describe "Creator Signal SSO" do
+    test "accepts an absolute issuer without query or fragment" do
+      config =
+        runtime_config([
+          {"CREATOR_SIGNAL_SSO_ENABLED", "true"},
+          {"CREATOR_SIGNAL_SSO_ISSUER", "https://auth.creatorsignal.me"},
+          {"CREATOR_SIGNAL_SSO_CLIENT_ID", "client-id"},
+          {"CREATOR_SIGNAL_SSO_BOOTSTRAP_EMAIL", "operator@example.com"}
+        ])
+
+      assert get_in(config, [:plausible, CreatorSignal.PlausibleSSO.Config, :issuer]) ==
+               "https://auth.creatorsignal.me"
+    end
+
+    test "rejects an issuer with a query or fragment" do
+      base_env = [
+        {"CREATOR_SIGNAL_SSO_ENABLED", "true"},
+        {"CREATOR_SIGNAL_SSO_CLIENT_ID", "client-id"},
+        {"CREATOR_SIGNAL_SSO_BOOTSTRAP_EMAIL", "operator@example.com"}
+      ]
+
+      for issuer <- [
+            "https://auth.creatorsignal.me?prompt=login",
+            "https://auth.creatorsignal.me#login"
+          ] do
+        assert_raise RuntimeError,
+                     "CREATOR_SIGNAL_SSO_ISSUER must be an absolute issuer URL without query or fragment",
+                     fn ->
+                       runtime_config([
+                         {"CREATOR_SIGNAL_SSO_ISSUER", issuer}
+                         | base_env
+                       ])
+                     end
+      end
+    end
+  end
+
   defp runtime_config(env) do
     put_system_env_undo(env)
     Config.Reader.read!("config/runtime.exs", env: :prod)
